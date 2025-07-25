@@ -1,0 +1,2365 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการสต็อก - ITS Device Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+            color: #fbbf24;
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .logo-text p {
+            font-size: 0.9rem;
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            margin: 2rem 0;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .page-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 1.1rem;
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        /* Statistics Cards */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-left: 5px solid;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-card.total { border-left-color: #667eea; }
+        .stat-card.available { border-left-color: #10b981; }
+        .stat-card.used { border-left-color: #f59e0b; }
+        .stat-card.low-stock { border-left-color: #ef4444; }
+
+        .stat-header {
+            display: flex;
+            align-items: center;  
+            justify-content: space-between;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .stat-card.total .stat-icon { 
+            background: linear-gradient(135deg, #667eea, #5a67d8); 
+        }
+        .stat-card.available .stat-icon { 
+            background: linear-gradient(135deg, #10b981, #059669); 
+        }
+        .stat-card.used .stat-icon { 
+            background: linear-gradient(135deg, #f59e0b, #d97706); 
+        }
+        .stat-card.low-stock .stat-icon { 
+            background: linear-gradient(135deg, #ef4444, #dc2626); 
+        }
+
+        .stat-change {
+            font-size: 0.9rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Alert Banner */
+        .alert-banner {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .alert-banner.show {
+            display: flex;
+        }
+
+        .alert-banner i {
+            font-size: 1.2rem;
+        }
+
+        @keyframes slideDown {
+            from { 
+                opacity: 0; 
+                transform: translateY(-20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .control-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .control-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .control-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-control {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary { 
+            background: linear-gradient(135deg, #667eea, #5a67d8);
+            color: white; 
+        }
+        .btn-success { 
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white; 
+        }
+        .btn-warning { 
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white; 
+        }
+        .btn-info { 
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white; 
+        }
+        .btn-secondary { 
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white; 
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 0.9rem;
+        }
+
+        /* Stock Grid */
+        .stock-grid {
+            display: grid;
+            gap: 24px;
+        }
+
+        .station-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .station-section:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .station-header {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .station-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .station-name {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .station-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .station-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        /* Stock Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .stock-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stock-table th,
+        .stock-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .stock-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .stock-table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        .stock-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .device-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .device-model {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .device-code {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+
+        .stock-numbers {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .stock-main {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .stock-progress {
+            width: 100%;
+            height: 6px;
+            background: #f1f5f9;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-available {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transition: width 0.3s ease;
+        }
+
+        .progress-used {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            transition: width 0.3s ease;
+        }
+
+        .stock-percentage {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .stock-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .stock-status.normal {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .stock-status.low {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .stock-status.critical {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .notification-level {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .last-updated {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .urgent-row {
+            border-left: 4px solid #ef4444 !important;
+            background: rgba(239, 68, 68, 0.02) !important;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 25px rgba(0,0,0,0.15);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        .modal-content.large {
+            max-width: 900px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes modalSlideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(-50px) scale(0.9); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        .modal-header {
+            padding: 24px 24px 0 24px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .modal-subtitle {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(0,0,0,0.1);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(0,0,0,0.2);
+            color: #374151;
+        }
+
+        .modal-body {
+            padding: 0 24px 24px 24px;
+        }
+
+        .modal-table {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 8px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9rem;
+            position: sticky;
+            top: 0;
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Loading States */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 20px 25px rgba(0,0,0,0.15);
+            min-width: 200px;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #f1f5f9;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 64px 32px;
+            color: #9ca3af;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 24px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: #64748b;
+            margin-bottom: 8px;
+            font-size: 1.25rem;
+        }
+
+        .empty-state p {
+            margin-bottom: 24px;
+            color: #9ca3af;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .badge-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .badge-primary {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        /* Text Colors */
+        .text-success { color: #10b981; }
+        .text-warning { color: #f59e0b; }
+        .text-danger { color: #ef4444; }
+        .text-info { color: #3b82f6; }
+        .text-muted { color: #9ca3af; }
+        .text-primary { color: #667eea; }
+
+        /* Search Highlight */
+        .search-highlight {
+            background: rgba(255, 235, 59, 0.3);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 999;
+        }
+
+        .quick-action {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #5a67d8);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .quick-action:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        }
+
+        /* Form Elements */
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            .header-content {
+                padding: 0 16px;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .nav-links {
+                order: -1;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .stats-overview {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                grid-template-columns: 1fr;
+            }
+
+            .control-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-actions {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .station-stats {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .quick-actions {
+                position: relative;
+                bottom: auto;
+                right: auto;
+                flex-direction: row;
+                justify-content: center;
+                margin-top: 32px;
+            }
+
+            .page-title {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 20px;
+            }
+
+            .modal-header,
+            .modal-body {
+                padding: 16px;
+            }
+
+            .stock-table th,
+            .stock-table td {
+                padding: 12px 8px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-header {
+                padding: 2rem 0;
+            }
+
+            .stat-card {
+                padding: 20px;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            .stat-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+
+            .nav-links a {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-warehouse"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>ITS Device Management</h1>
+                    <p>ระบบจัดการสต็อกอุปกรณ์ทดแทน</p>
+                </div>
+            </div>
+            
+            <div class="nav-links">
+                <a href="/dashboard">
+                    <i class="fas fa-home"></i> 
+                    หน้าหลัก
+                </a>
+                <a href="/stock" class="active">
+                    <i class="fas fa-warehouse"></i> 
+                    สต็อก
+                </a>
+                <a href="/devices">
+                    <i class="fas fa-microchip"></i> 
+                    อุปกรณ์
+                </a>
+                <a href="/reports">
+                    <i class="fas fa-chart-bar"></i> 
+                    รายงาน
+                </a>
+            </div>
+            
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                ออกจากระบบ
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-warehouse"></i>
+                จัดการสต็อกอุปกรณ์สำรอง
+            </h1>
+            <p class="page-subtitle">ตรวจสอบสต็อก ปรับระดับแจ้งเตือน และจัดการคลังอุปกรณ์แบบ Real-time</p>
+        </div>
+
+        <!-- Alert Banner -->
+        <div class="alert-banner" id="lowStockAlert">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>แจ้งเตือนสต็อกต่ำ:</strong> 
+                <span id="lowStockMessage">กำลังตรวจสอบ...</span>
+            </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="stats-overview">
+            <div class="stat-card total">
+                <div class="stat-header">
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalStock">-</div>
+                        <div class="stat-label">อุปกรณ์ทั้งหมด</div>
+                        <div class="stat-change" id="totalChange">
+                            <i class="fas fa-info-circle"></i>
+                            <span>กำลังโหลด...</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card available">
+                <div class="stat-header">
+                    <div class="stat-content">
+                        <div class="stat-value" id="availableStock">-</div>
+                        <div class="stat-label">พร้อมใช้งาน</div>
+                        <div class="stat-change" id="availableChange">
+                            <i class="fas fa-info-circle"></i>
+                            <span>กำลังโหลด...</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card used">
+                <div class="stat-header">
+                    <div class="stat-content">
+                        <div class="stat-value" id="usedStock">-</div>
+                        <div class="stat-label">ใช้งานแล้ว</div>
+                        <div class="stat-change" id="usedChange">
+                            <i class="fas fa-info-circle"></i>
+                            <span>กำลังโหลด...</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card low-stock">
+                <div class="stat-header">
+                    <div class="stat-content">
+                        <div class="stat-value" id="lowStockCount">-</div>
+                        <div class="stat-label">สต็อกต่ำ</div>
+                        <div class="stat-change" id="lowStockChange">
+                            <i class="fas fa-info-circle"></i>
+                            <span>กำลังโหลด...</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="control-header">
+                <h3 class="control-title">
+                    <i class="fas fa-filter"></i>
+                    ตัวกรองและการจัดการ
+                </h3>
+                <div class="control-actions">
+                    <button class="btn btn-primary" onclick="refreshStock()" id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i>
+                        รีเฟรชข้อมูล
+                    </button>
+                    <button class="btn btn-success" onclick="exportStock()">
+                        <i class="fas fa-download"></i>
+                        ส่งออกข้อมูล
+                    </button>
+                    <button class="btn btn-warning" onclick="showLowStockModal()">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        ดูสต็อกต่ำ
+                    </button>
+                    <button class="btn btn-info" onclick="showForecastModal()">
+                        <i class="fas fa-chart-line"></i>
+                        คาดการณ์
+                    </button>
+                </div>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="stationFilter">
+                        <i class="fas fa-building"></i>
+                        อู่
+                    </label>
+                    <select class="form-control" id="stationFilter" onchange="filterStock()">
+                        <option value="">ทุกอู่</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="deviceTypeFilter">
+                        <i class="fas fa-microchip"></i>
+                        ประเภทอุปกรณ์
+                    </label>
+                    <select class="form-control" id="deviceTypeFilter" onchange="filterStock()">
+                        <option value="">ทุกประเภท</option>
+                        <option value="Z90">Z90</option>
+                        <option value="AVM">AVM</option>
+                        <option value="E60">E60</option>
+                        <option value="MDVR">MDVR</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="stockStatusFilter">
+                        <i class="fas fa-chart-pie"></i>
+                        สถานะสต็อก
+                    </label>
+                    <select class="form-control" id="stockStatusFilter" onchange="filterStock()">
+                        <option value="">ทุกสถานะ</option>
+                        <option value="normal">ปกติ</option>
+                        <option value="low">ต่ำ</option>
+                        <option value="critical">วิกฤต</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchBox">
+                        <i class="fas fa-search"></i>
+                        ค้นหา
+                    </label>
+                    <input type="text" class="form-control" id="searchBox" 
+                           placeholder="ค้นหารุ่นอุปกรณ์..." 
+                           onkeyup="debounceSearch()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Grid -->
+        <div class="stock-grid" id="stockGrid">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <div class="loading-text">กำลังโหลดข้อมูลสต็อก...</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <button class="quick-action" onclick="scrollToTop()" title="กลับด้านบน">
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            <button class="quick-action" onclick="refreshStock()" title="รีเฟรชข้อมูล">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button class="quick-action" onclick="showLowStockModal()" title="สต็อกต่ำ">
+                <i class="fas fa-exclamation-triangle"></i>
+            </button>
+            <button class="quick-action" onclick="showForecastModal()" title="คาดการณ์">
+                <i class="fas fa-chart-line"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Low Stock Modal -->
+    <div id="lowStockModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('lowStockModal')">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>
+                    รายการสต็อกต่ำ
+                </h3>
+                <p class="modal-subtitle">รายการอุปกรณ์ที่มีสต็อกต่ำกว่าระดับที่กำหนด</p>
+            </div>
+            <div class="modal-body">
+                <div id="lowStockContent" class="modal-table">
+                    <div class="loading-content">
+                        <div class="spinner"></div>
+                        <div class="loading-text">กำลังโหลดข้อมูล...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Notification Modal -->
+    <div id="stockNotificationModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('stockNotificationModal')">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-bell"></i>
+                    ตั้งค่าระดับแจ้งเตือน
+                </h3>
+                <p class="modal-subtitle">กำหนดระดับสต็อกขั้นต่ำสำหรับการแจ้งเตือน</p>
+            </div>
+            <div class="modal-body">
+                <form id="notificationForm" onsubmit="updateNotificationLevel(event)">
+                    <div class="form-row">
+                        <div class="filter-group">
+                            <label><i class="fas fa-building"></i> อู่</label>
+                            <input type="text" class="form-control" id="notifyStation" readonly>
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="fas fa-microchip"></i> รุ่นอุปกรณ์</label>
+                            <input type="text" class="form-control" id="notifyDeviceModel" readonly>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="fas fa-bell"></i> ระดับแจ้งเตือน (ชิ้น)</label>
+                        <input type="number" class="form-control" id="notifyLevel" min="0" max="50" required>
+                        <small class="text-muted">ระบบจะแจ้งเตือนเมื่อสต็อกเหลือน้อยกว่าหรือเท่ากับจำนวนนี้</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('stockNotificationModal')">
+                            <i class="fas fa-times"></i>
+                            ยกเลิก
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            บันทึก
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Forecast Modal -->
+    <div id="stockForecastModal" class="modal">
+        <div class="modal-content large">
+            <button class="modal-close" onclick="closeModal('stockForecastModal')">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-chart-line"></i>
+                    การคาดการณ์สต็อก
+                </h3>
+                <p class="modal-subtitle">คาดการณ์การใช้งานและระดับสต็อกในอนาคต</p>
+            </div>
+            <div class="modal-body">
+                <div id="forecastContent" class="modal-table">
+                    <div class="loading-content">
+                        <div class="spinner"></div>
+                        <div class="loading-text">กำลังคำนวณการคาดการณ์...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div class="loading-text" id="loadingMessage">กำลังโหลดข้อมูล...</div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let stockData = [];
+        let filteredData = [];
+        let currentNotificationItem = null;
+        let refreshInterval = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🏪 Stock Management System Initializing...');
+            checkAuthentication();
+            loadStations();
+            loadStockData();
+            initializeAutoRefresh();
+            initializeKeyboardShortcuts();
+        });
+
+        // Authentication check
+        async function checkAuthentication() {
+            try {
+                const response = await fetch('/api/auth/check');
+                const data = await response.json();
+                
+                if (!data.authenticated) {
+                    console.log('❌ User not authenticated, redirecting...');
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                console.log('✅ User authenticated:', data.user.username);
+            } catch (error) {
+                console.error('❌ Authentication check failed:', error);
+                window.location.href = '/login';
+            }
+        }
+
+        // Load stations for filter
+        async function loadStations() {
+            try {
+                console.log('📍 Loading stations...');
+                
+                // Predefined stations - you can modify this to load from API
+                const stations = [
+                    'บึงกุ่ม',
+                    'รามอินทรา', 
+                    'ลาดพร้าว',
+                    'งามวงศ์วาน',
+                    'ปทุมธานี',
+                    'รังสิต',
+                    'ลำลูกกา',
+                    'คลองหลวง'
+                ];
+                
+                const stationFilter = document.getElementById('stationFilter');
+                stationFilter.innerHTML = '<option value="">ทุกอู่</option>';
+                
+                stations.forEach(station => {
+                    const option = document.createElement('option');
+                    option.value = station;
+                    option.textContent = station;
+                    stationFilter.appendChild(option);
+                });
+
+                console.log('✅ Stations loaded:', stations.length);
+            } catch (error) {
+                console.error('❌ Error loading stations:', error);
+                showNotification('ไม่สามารถโหลดรายชื่ออู่ได้', 'error');
+            }
+        }
+
+        // Load stock data
+        async function loadStockData() {
+            try {
+                console.log('📦 Loading stock data...');
+                showLoading('กำลังโหลดข้อมูลสต็อก...');
+                
+                const response = await fetch('/api/stock/summary');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    stockData = data.stock_details || [];
+                    console.log('✅ Stock data loaded:', stockData.length, 'items');
+                    
+                    updateStatistics(data.summary);
+                    renderStockGrid();
+                    checkLowStock();
+                    updateLastRefreshTime();
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('❌ Error loading stock data:', error);
+                showError('ไม่สามารถโหลดข้อมูลสต็อกได้: ' + error.message);
+                showEmptyState('ไม่สามารถโหลดข้อมูลได้', 'กรุณาลองรีเฟรชหน้าใหม่');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Update statistics display
+        function updateStatistics(summary) {
+            console.log('📊 Updating statistics:', summary);
+            
+            try {
+                // Update main stats with animation
+                animateValue('totalStock', summary.total_stock || 0);
+                animateValue('availableStock', summary.available_stock || 0);
+                animateValue('usedStock', summary.used_stock || 0);
+                animateValue('lowStockCount', summary.low_stock_items || 0);
+
+                // Calculate rates
+                const totalStock = summary.total_stock || 0;
+                const utilizationRate = totalStock > 0 ? 
+                    ((summary.used_stock / totalStock) * 100).toFixed(1) : 0;
+                const availabilityRate = totalStock > 0 ? 
+                    ((summary.available_stock / totalStock) * 100).toFixed(1) : 0;
+                
+                // Update stat changes
+                document.getElementById('usedChange').innerHTML = `
+                    <i class="fas fa-chart-line"></i>
+                    <span>อัตราใช้งาน ${utilizationRate}%</span>
+                `;
+                
+                document.getElementById('availableChange').innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>อัตราพร้อมใช้ ${availabilityRate}%</span>
+                `;
+
+                document.getElementById('lowStockChange').innerHTML = `
+                    <i class="fas fa-${summary.low_stock_items > 0 ? 'exclamation-triangle' : 'check-circle'}"></i>
+                    <span>${summary.low_stock_items > 0 ? 'ต้องเติมสต็อก' : 'สต็อกปกติ'}</span>
+                `;
+
+                console.log('✅ Statistics updated successfully');
+            } catch (error) {
+                console.error('❌ Error updating statistics:', error);
+            }
+        }
+
+        // Animate number values
+        function animateValue(elementId, targetValue) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            const startValue = parseInt(element.textContent.replace(/[^\d]/g, '')) || 0;
+            const duration = 1000;
+            const startTime = performance.now();
+
+            function updateValue(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                const currentValue = Math.round(startValue + (targetValue - startValue) * easeOutQuart);
+                
+                element.textContent = formatNumber(currentValue);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateValue);
+                }
+            }
+            
+            requestAnimationFrame(updateValue);
+        }
+
+        // Render stock grid
+        function renderStockGrid() {
+            console.log('🎨 Rendering stock grid...');
+            const grid = document.getElementById('stockGrid');
+            
+            if (stockData.length === 0) {
+                showEmptyState('ไม่พบข้อมูลสต็อก', 'ยังไม่มีข้อมูลสต็อกในระบบ กรุณาเพิ่มอุปกรณ์ทดแทนก่อน');
+                return;
+            }
+
+            // Group by station
+            const groupedData = stockData.reduce((groups, item) => {
+                const station = item.station;
+                if (!groups[station]) {
+                    groups[station] = [];
+                }
+                groups[station].push(item);
+                return groups;
+            }, {});
+
+            let html = '';
+            Object.keys(groupedData).forEach(station => {
+                const stationItems = groupedData[station];
+                const stationStats = calculateStationStats(stationItems);
+                
+                html += `
+                    <div class="station-section">
+                        <div class="station-header">
+                            <div class="station-title">
+                                <div class="station-name">
+                                    <i class="fas fa-building"></i>
+                                    ${station}
+                                </div>
+                                <div class="station-stats">
+                                    <div class="station-stat">
+                                        <i class="fas fa-boxes"></i>
+                                        รวม: <strong>${stationStats.total}</strong>
+                                    </div>
+                                    <div class="station-stat">
+                                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                                        พร้อมใช้: <strong>${stationStats.available}</strong>
+                                    </div>
+                                    <div class="station-stat">
+                                        <i class="fas fa-play-circle" style="color: #f59e0b;"></i>
+                                        ใช้งาน: <strong>${stationStats.used}</strong>
+                                    </div>
+                                    <div class="station-stat ${stationStats.lowStock > 0 ? 'text-danger' : ''}">
+                                        <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                                        สต็อกต่ำ: <strong>${stationStats.lowStock}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="stock-table">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-microchip"></i> รุ่นอุปกรณ์</th>
+                                        <th><i class="fas fa-boxes"></i> สต็อกทั้งหมด</th>
+                                        <th><i class="fas fa-check-circle"></i> พร้อมใช้</th>
+                                        <th><i class="fas fa-play-circle"></i> ใช้งานแล้ว</th>
+                                        <th><i class="fas fa-chart-pie"></i> สถานะ</th>
+                                        <th><i class="fas fa-bell"></i> แจ้งเตือน</th>
+                                        <th><i class="fas fa-clock"></i> อัปเดตล่าสุด</th>
+                                        <th><i class="fas fa-cogs"></i> จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${stationItems.map(item => renderStockRow(item)).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html;
+            console.log('✅ Stock grid rendered successfully');
+        }
+
+        // Render individual stock row
+        function renderStockRow(item) {
+            const utilizationRate = item.total_stock > 0 ? 
+                (item.used_stock / item.total_stock) * 100 : 0;
+            const availableRate = item.total_stock > 0 ? 
+                (item.available_stock / item.total_stock) * 100 : 0;
+            
+            const stockStatus = getStockStatus(item);
+            const lastUpdated = formatDateTime(item.last_updated);
+            const isUrgent = item.is_low_stock && item.available_stock <= 1;
+
+            return `
+                <tr ${isUrgent ? 'class="urgent-row"' : ''}>
+                    <td>
+                        <div class="device-info">
+                            <div class="device-model">${highlightSearch(item.device_model)}</div>
+                            <div class="device-code">รหัส: ${item.device_model}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="stock-numbers">
+                            <div class="stock-main">${item.total_stock}</div>
+                            <div class="stock-progress">
+                                <div class="progress-available" style="width: ${availableRate}%"></div>
+                                <div class="progress-used" style="width: ${utilizationRate}%"></div>
+                            </div>
+                            <div class="stock-percentage">${utilizationRate.toFixed(1)}% ใช้งาน</div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="text-success stock-main">${item.available_stock}</span>
+                    </td>
+                    <td>
+                        <span class="text-warning stock-main">${item.used_stock}</span>
+                    </td>
+                    <td>
+                        <span class="stock-status ${stockStatus.class}">
+                            <i class="fas ${stockStatus.icon}"></i>
+                            ${stockStatus.text}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="notification-level">
+                            <i class="fas fa-bell"></i>
+                            ${item.min_stock_notify || 2} ชิ้น
+                        </div>
+                    </td>
+                    <td>
+                        <div class="last-updated">${lastUpdated}</div>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary btn-icon" 
+                                    onclick="openNotificationModal('${item.station}', '${item.device_model}', ${item.min_stock_notify || 2})"
+                                    title="ตั้งค่าแจ้งเตือน">
+                                <i class="fas fa-bell"></i>
+                            </button>
+                            <button class="btn btn-success btn-icon" 
+                                    onclick="refreshStockItem('${item.station}', '${item.device_model}')"
+                                    title="รีเฟรช">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Helper functions
+        function calculateStationStats(items) {
+            return {
+                total: items.reduce((sum, item) => sum + parseInt(item.total_stock || 0), 0),
+                available: items.reduce((sum, item) => sum + parseInt(item.available_stock || 0), 0),
+                used: items.reduce((sum, item) => sum + parseInt(item.used_stock || 0), 0),
+                lowStock: items.filter(item => item.is_low_stock).length
+            };
+        }
+
+        function getStockStatus(item) {
+            if (item.available_stock <= 0) {
+                return { class: 'critical', icon: 'fa-times-circle', text: 'หมดสต็อก' };
+            } else if (item.is_low_stock) {
+                return { class: 'low', icon: 'fa-exclamation-triangle', text: 'สต็อกต่ำ' };
+            } else {
+                return { class: 'normal', icon: 'fa-check-circle', text: 'ปกติ' };
+            }
+        }
+
+        function highlightSearch(text) {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            if (!searchTerm) return text;
+            
+            const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\<button class="logout-btn" onclick="logout()"><i')})`, 'gi');
+            return text.replace(regex, '<span class="search-highlight">$1</span>');
+        }
+
+        function checkLowStock() {
+            const lowStockItems = stockData.filter(item => item.is_low_stock);
+            const alertBanner = document.getElementById('lowStockAlert');
+            const message = document.getElementById('lowStockMessage');
+
+            if (lowStockItems.length > 0) {
+                const criticalItems = lowStockItems.filter(item => item.available_stock <= 0);
+                
+                let alertText = `มี ${lowStockItems.length} รายการที่สต็อกต่ำ`;
+                if (criticalItems.length > 0) {
+                    alertText += ` (${criticalItems.length} รายการหมดสต็อก)`;
+                }
+                
+                message.textContent = alertText;
+                alertBanner.classList.add('show');
+            } else {
+                alertBanner.classList.remove('show');
+            }
+        }
+
+        function updateLastRefreshTime() {
+            const now = new Date();
+            document.getElementById('totalChange').innerHTML = `
+                <i class="fas fa-clock"></i>
+                <span>อัปเดตล่าสุด: ${now.toLocaleTimeString('th-TH')}</span>
+            `;
+        }
+
+        // Stock management functions
+        async function refreshStock() {
+            const station = document.getElementById('stationFilter').value;
+            const refreshBtn = document.getElementById('refreshBtn');
+            
+            console.log('🔄 Refreshing stock data...');
+            
+            try {
+                refreshBtn.disabled = true;
+                refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังรีเฟรช...';
+                
+                const params = station ? `?station=${encodeURIComponent(station)}` : '';
+                const response = await fetch(`/api/stock/refresh${params}`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('รีเฟรชข้อมูลเรียบร้อยแล้ว', 'success');
+                    await loadStockData();
+                    console.log('✅ Stock refreshed successfully');
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('❌ Error refreshing stock:', error);
+                showError('ไม่สามารถรีเฟรชข้อมูลได้: ' + error.message);
+            } finally {
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> รีเฟรชข้อมูล';
+            }
+        }
+
+        async function refreshStockItem(station, deviceModel) {
+            console.log('🔄 Refreshing stock item:', station, deviceModel);
+            
+            try {
+                showLoading('กำลังรีเฟรชรายการ...');
+                
+                const response = await fetch(`/api/stock/refresh?station=${encodeURIComponent(station)}&device_model=${encodeURIComponent(deviceModel)}`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`รีเฟรช ${deviceModel} ที่ ${station} เรียบร้อยแล้ว`, 'success');
+                    await loadStockData();
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('❌ Error refreshing stock item:', error);
+                showError('ไม่สามารถรีเฟรชข้อมูลได้: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Modal functions
+        function openNotificationModal(station, deviceModel, currentLevel) {
+            console.log('🔔 Opening notification modal:', station, deviceModel, currentLevel);
+            
+            currentNotificationItem = { station, deviceModel };
+            
+            document.getElementById('notifyStation').value = station;
+            document.getElementById('notifyDeviceModel').value = deviceModel;
+            document.getElementById('notifyLevel').value = currentLevel;
+            
+            showModal('stockNotificationModal');
+        }
+
+        async function updateNotificationLevel(event) {
+            event.preventDefault();
+            
+            if (!currentNotificationItem) {
+                console.error('❌ No notification item selected');
+                return;
+            }
+
+            const level = parseInt(document.getElementById('notifyLevel').value);
+            
+            console.log('🔔 Updating notification level:', currentNotificationItem, level);
+            
+            try {
+                showLoading('กำลังอัปเดต...');
+                
+                const response = await fetch('/api/stock/notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        station: currentNotificationItem.station,
+                        device_model: currentNotificationItem.deviceModel,
+                        min_stock_notify: level
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('อัปเดตระดับแจ้งเตือนเรียบร้อยแล้ว', 'success');
+                    closeModal('stockNotificationModal');
+                    await loadStockData();
+                    console.log('✅ Notification level updated successfully');
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('❌ Error updating notification level:', error);
+                showError('ไม่สามารถอัปเดตระดับแจ้งเตือนได้: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function showLowStockModal() {
+            console.log('⚠️ Showing low stock modal...');
+            
+            try {
+                showModal('lowStockModal');
+                
+                const response = await fetch('/api/stock/low-stock');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderLowStockContent(data.items);
+                    console.log('✅ Low stock modal displayed');
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('❌ Error loading low stock:', error);
+                document.getElementById('lowStockContent').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>ไม่สามารถโหลดข้อมูลได้</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderLowStockContent(items) {
+            const content = document.getElementById('lowStockContent');
+            
+            if (items.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                        <h3>ไม่มีสต็อกต่ำ</h3>
+                        <p>สต็อกทุกรายการอยู่ในระดับปกติ</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>อู่</th>
+                            <th>รุ่นอุปกรณ์</th>
+                            <th>สต็อกเหลือ</th>
+                            <th>ระดับขั้นต่ำ</th>
+                            <th>ขาด</th>
+                            <th>ระดับความเร่งด่วน</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${items.map(item => `
+                            <tr class="${item.urgency_level === 'critical' ? 'urgent-row' : ''}">
+                                <td><strong>${item.station}</strong></td>
+                                <td>${item.device_model}</td>
+                                <td><span class="text-danger"><strong>${item.available_stock}</strong></span></td>
+                                <td>${item.min_stock_notify}</td>
+                                <td><strong class="text-danger">${item.shortage_amount}</strong></td>
+                                <td>
+                                    <span class="badge ${getBadgeClass(item.urgency_level)}">
+                                        ${getUrgencyText(item.urgency_level)}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            content.innerHTML = html;
+        }
+
+        async function showForecastModal() {
+            console.log('📈 Showing forecast modal...');
+            
+            try {
+                showModal('stockForecastModal');
+                
+                const response = await fetch('/api/stock/forecast');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderForecastContent(data.forecasts, data.summary);
+                    console.log('✅ Forecast modal displayed');
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('❌ Error loading forecast:', error);
+                document.getElementById('forecastContent').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>ไม่สามารถคำนวณการคาดการณ์ได้</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderForecastContent(forecasts, summary) {
+            const content = document.getElementById('forecastContent');
+            
+            if (forecasts.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>ไม่มีข้อมูลสำหรับคาดการณ์</h3>
+                        <p>ต้องมีข้อมูลการใช้งานอย่างน้อย 7 วันย้อนหลัง</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = `
+                <div class="forecast-summary" style="margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
+                        <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #667eea;">${summary.total_items}</div>
+                            <div style="font-size: 0.9rem; color: #64748b;">รายการทั้งหมด</div>
+                        </div>
+                        <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #ef4444;">${summary.critical_alerts}</div>
+                            <div style="font-size: 0.9rem; color: #64748b;">วิกฤต</div>
+                        </div>
+                        <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;">${summary.warning_alerts}</div>
+                            <div style="font-size: 0.9rem; color: #64748b;">เตือน</div>
+                        </div>
+                        <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #10b981;">${summary.total_recommended_orders}</div>
+                            <div style="font-size: 0.9rem; color: #64748b;">แนะนำสั่งซื้อ</div>
+                        </div>
+                    </div>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>อู่</th>
+                            <th>รุ่นอุปกรณ์</th>
+                            <th>สต็อกปัจจุบัน</th>
+                            <th>อัตราใช้งาน/วัน</th>
+                            <th>วันจนถึงสต็อกต่ำ</th>
+                            <th>วันจนถึงหมด</th>
+                            <th>แนะนำสั่งซื้อ</th>
+                            <th>ระดับ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${forecasts.map(forecast => `
+                            <tr class="${forecast.alert_level === 'critical' ? 'urgent-row' : ''}">
+                                <td><strong>${forecast.station}</strong></td>
+                                <td>${forecast.device_model}</td>
+                                <td><strong>${forecast.current_stock}</strong></td>
+                                <td>${forecast.daily_usage_rate.toFixed(2)}</td>
+                                <td>
+                                    ${forecast.days_until_low_stock !== null ? 
+                                        `<span class="${getDaysColor(forecast.days_until_low_stock)}">
+                                            ${forecast.days_until_low_stock} วัน
+                                        </span>` : 
+                                        '<span class="text-muted">-</span>'
+                                    }
+                                </td>
+                                <td>
+                                    ${forecast.days_until_out_of_stock !== null ? 
+                                        `<span class="${getDaysColor(forecast.days_until_out_of_stock, true)}">
+                                            ${forecast.days_until_out_of_stock} วัน
+                                        </span>` : 
+                                        '<span class="text-muted">-</span>'
+                                    }
+                                </td>
+                                <td>
+                                    ${forecast.recommended_order > 0 ? 
+                                        `<strong class="text-primary">${forecast.recommended_order} ชิ้น</strong>` : 
+                                        '<span class="text-muted">ไม่จำเป็น</span>'
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge ${getBadgeClass(forecast.alert_level)}">
+                                        ${getAlertLevelText(forecast.alert_level)}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            content.innerHTML = html;
+        }
+
+        // Filter and search functions
+        function filterStock() {
+            const station = document.getElementById('stationFilter').value.toLowerCase();
+            const deviceType = document.getElementById('deviceTypeFilter').value.toLowerCase();
+            const stockStatus = document.getElementById('stockStatusFilter').value;
+            const search = document.getElementById('searchBox').value.toLowerCase();
+
+            console.log('🔍 Filtering stock:', { station, deviceType, stockStatus, search });
+
+            filteredData = stockData.filter(item => {
+                const matchStation = !station || item.station.toLowerCase().includes(station);
+                const matchDeviceType = !deviceType || item.device_model.toLowerCase().includes(deviceType);
+                const matchSearch = !search || item.device_model.toLowerCase().includes(search);
+                
+                let matchStatus = true;
+                if (stockStatus) {
+                    if (stockStatus === 'low' && !item.is_low_stock) matchStatus = false;
+                    if (stockStatus === 'normal' && item.is_low_stock) matchStatus = false;
+                    if (stockStatus === 'critical' && item.available_stock > 0) matchStatus = false;
+                }
+
+                return matchStation && matchDeviceType && matchSearch && matchStatus;
+            });
+
+            // Update stockData temporarily for rendering
+            const originalData = [...stockData];
+            stockData = filteredData;
+            renderStockGrid();
+            stockData = originalData;
+
+            console.log('✅ Filter applied, showing', filteredData.length, 'items');
+        }
+
+        let searchTimeout;
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(filterStock, 300);
+        }
+
+        // Export function
+        async function exportStock() {
+            const station = document.getElementById('stationFilter').value;
+            const deviceType = document.getElementById('deviceTypeFilter').value;
+            
+            console.log('📤 Exporting stock data...');
+            
+            try {
+                showLoading('กำลังเตรียมข้อมูลสำหรับส่งออก...');
+                
+                let url = '/api/stock/export?format=csv';
+                if (station) url += `&station=${encodeURIComponent(station)}`;
+                if (deviceType) url += `&device_model=${encodeURIComponent(deviceType)}`;
+                
+                const response = await fetch(url);
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = `stock_export_${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(downloadUrl);
+                    
+                    showNotification('ส่งออกข้อมูลเรียบร้อยแล้ว', 'success');
+                    console.log('✅ Stock data exported successfully');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('❌ Error exporting stock:', error);
+                showError('ไม่สามารถส่งออกข้อมูลได้: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Auto-refresh and keyboard shortcuts
+        function initializeAutoRefresh() {
+            // Auto refresh every 5 minutes
+            refreshInterval = setInterval(() => {
+                console.log('🔄 Auto-refreshing stock data...');
+                loadStockData();
+            }, 5 * 60 * 1000);
+            
+            console.log('⏱️ Auto-refresh initialized (5 minutes interval)');
+        }
+
+        function initializeKeyboardShortcuts() {
+            document.addEventListener('keydown', function(event) {
+                // Prevent shortcuts when typing in input fields
+                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+
+                if (event.ctrlKey || event.metaKey) {
+                    switch(event.key) {
+                        case 'r':
+                            event.preventDefault();
+                            refreshStock();
+                            break;
+                        case 'f':
+                            event.preventDefault();
+                            document.getElementById('searchBox').focus();
+                            break;
+                        case 'e':
+                            event.preventDefault();
+                            exportStock();
+                            break;
+                        case 'l':
+                            event.preventDefault();
+                            showLowStockModal();
+                            break;
+                    }
+                }
+                
+                if (event.key === 'Escape') {
+                    const openModals = document.querySelectorAll('.modal.show');
+                    openModals.forEach(modal => {
+                        closeModal(modal.id);
+                    });
+                }
+            });
+
+            console.log('⌨️ Keyboard shortcuts initialized');
+        }
+
+        // Utility functions
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        function showLoading(message = 'กำลังโหลดข้อมูล...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const messageElement = document.getElementById('loadingMessage');
+            messageElement.textContent = message;
+            overlay.classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        function showError(message) {
+            showNotification(message, 'error');
+        }
+
+        function showNotification(message, type = 'info') {
+            // Simple fallback notification
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            
+            // You can integrate with a toast library here
+            if (type === 'error') {
+                alert('❌ ' + message);
+            } else if (type === 'success') {
+                // Show success message briefly
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #10b981, #059669);
+                    color: white;
+                    padding: 12px 16px;
+                    border-radius: 8px;
+                    z-index: 10000;
+                    font-weight: 500;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                `;
+                toast.textContent = '✅ ' + message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 3000);
+            }
+        }
+
+        function showEmptyState(title, message) {
+            const grid = document.getElementById('stockGrid');
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-warehouse"></i>
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                    <button class="btn btn-primary" onclick="loadStockData()">
+                        <i class="fas fa-redo"></i> ลองใหม่
+                    </button>
+                </div>
+            `;
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('th-TH').format(num);
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        function getBadgeClass(level) {
+            switch(level) {
+                case 'critical': return 'badge-danger';
+                case 'warning': case 'high': return 'badge-warning';
+                case 'normal': return 'badge-success';
+                default: return 'badge-info';
+            }
+        }
+
+        function getUrgencyText(level) {
+            switch(level) {
+                case 'critical': return 'วิกฤต';
+                case 'high': return 'สูง';
+                case 'medium': return 'ปานกลาง';
+                default: return 'ปกติ';
+            }
+        }
+
+        function getAlertLevelText(level) {
+            switch(level) {
+                case 'critical': return 'วิกฤต';
+                case 'warning': return 'เตือน';
+                case 'normal': return 'ปกติ';
+                default: return 'ปกติ';
+            }
+        }
+
+        function getDaysColor(days, isOutOfStock = false) {
+            const thresholds = isOutOfStock ? [14, 30] : [7, 14];
+            if (days <= thresholds[0]) return 'text-danger';
+            if (days <= thresholds[1]) return 'text-warning';
+            return 'text-success';
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                closeModal(event.target.id);
+            }
+        });
+
+        // Logout function
+        async function logout() {
+            try {
+                console.log('👋 Logging out...');
+                
+                // Clear auto-refresh interval
+                if (refreshInterval) {
+                    clearInterval(refreshInterval);
+                }
+                
+                const response = await fetch('/api/auth/logout', { method: 'POST' });
+                
+                if (response.ok) {
+                    console.log('✅ Logged out successfully');
+                    window.location.href = '/login';
+                } else {
+                    throw new Error('Logout failed');
+                }
+            } catch (error) {
+                console.error('❌ Logout error:', error);
+                // Force redirect even if logout fails
+                window.location.href = '/login';
+            }
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+
+        // Console welcome message
+        console.log(`
+🏪 Stock Management System Ready!
+📊 Features Available:
+   - Real-time stock monitoring
+   - Low stock alerts & forecasting
+   - Advanced filtering & search
+   - Export capabilities (CSV)
+   - Auto-refresh (5 min intervals)
+
+⌨️  Keyboard Shortcuts:
+   Ctrl+R: Refresh stock data
+   Ctrl+F: Focus search box
+   Ctrl+E: Export stock data
+   Ctrl+L: Show low stock modal
+   ESC: Close any open modal
+
+🔄 Auto-refresh: Every 5 minutes
+📱 Mobile responsive design
+        `);
+    </script>
+</body>
+</html>

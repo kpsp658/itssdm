@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - ITS Device Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <meta name="description" content="ระบบจัดการอุปกรณ์สำรองสำหรับทีม ITS - TSBG">
+    <meta name="author" content="TSBG ITS Team">
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+</head>
+<body data-theme="light">
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle no-print" id="themeToggle" onclick="toggleTheme()" title="เปลี่ยนธีม">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- Header Navigation -->
+    <div class="header no-print">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="40" height="40" viewBox="0 0 80 80" fill="none">
+                        <circle cx="40" cy="40" r="35" fill="url(#logoGradient)" stroke="#2563eb" stroke-width="2"/>
+                        <path d="M25 35h30v10H25z" fill="white"/>
+                        <circle cx="32" cy="40" r="3" fill="#2563eb"/>
+                        <circle cx="48" cy="40" r="3" fill="#2563eb"/>
+                        <path d="M30 50h20v2H30z" fill="white"/>
+                        <path d="M35 25h10v8H35z" fill="white"/>
+                        <defs>
+                            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3b82f6"/>
+                                <stop offset="100%" style="stop-color:#1d4ed8"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>ITS Device Management</h1>
+                    <p>ระบบจัดการอุปกรณ์สำรอง</p>
+                </div>
+            </div>
+            
+            <nav class="nav-links">
+                <a href="/dashboard" class="nav-link" data-page="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/stock" class="nav-link" data-page="stock">
+                    <i class="fas fa-warehouse"></i>
+                    <span>สต็อก</span>
+                </a>
+                <a href="/devices" class="nav-link" data-page="devices">
+                    <i class="fas fa-microchip"></i>
+                    <span>อุปกรณ์</span>
+                </a>
+                <a href="/reports" class="nav-link" data-page="reports">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>รายงาน</span>
+                </a>
+            </nav>
+
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-details">
+                    <span class="user-name" data-user-name>ผู้ใช้งาน</span>
+                    <span class="user-role">Admin</span>
+                </div>
+                <div class="user-menu">
+                    <button class="btn btn-secondary" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        ออกจากระบบ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {{content}}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer no-print">
+        <div class="footer-content">
+            <div class="footer-left">
+                <p>&copy; 2025 TSBG ITS Team. All rights reserved.</p>
+                <p>ระบบจัดการอุปกรณ์สำรองทีม ITS</p>
+            </div>
+            <div class="footer-right">
+                <div class="footer-links">
+                    <a href="mailto:its@thaismilebus.com">
+                        <i class="fas fa-envelope"></i>
+                        ติดต่อสนับสนุน
+                    </a>
+                    <a href="#" onclick="showSystemInfo()">
+                        <i class="fas fa-info-circle"></i>
+                        ข้อมูลระบบ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <!-- System Info Modal -->
+    <div id="systemInfoModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('systemInfoModal')">&times;</span>
+            <h3 class="modal-title">ข้อมูลระบบ</h3>
+            <div class="system-info">
+                <div class="info-section">
+                    <h4><i class="fas fa-code"></i> เวอร์ชันระบบ</h4>
+                    <p>ITS Device Management System v1.0.0</p>
+                    <p>Node.js + PostgreSQL + Express.js</p>
+                </div>
+                <div class="info-section">
+                    <h4><i class="fas fa-building"></i> องค์กร</h4>
+                    <p>Thai Smile Bus Group (TSBG)</p>
+                    <p>ทีมเทคโนโลยีสารสนเทศ (ITS Team)</p>
+                </div>
+                <div class="info-section">
+                    <h4><i class="fas fa-envelope"></i> ติดต่อ</h4>
+                    <p>Email: its@thaismilebus.com</p>
+                    <p>Line: @its_support</p>
+                </div>
+                <div class="info-section">
+                    <h4><i class="fas fa-clock"></i> เวลาปัจจุบัน</h4>
+                    <p id="currentTime">กำลังโหลด...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>กำลังประมวลผล...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/main.js"></script>
+    <script>
+        // Initialize page-specific functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set active navigation
+            setActiveNavigation();
+            
+            // Initialize tooltips
+            initializeTooltips();
+            
+            // Start real-time clock
+            updateClock();
+            setInterval(updateClock, 1000);
+            
+            // Initialize page-specific features
+            if (typeof initializePage === 'function') {
+                initializePage();
+            }
+        });
+
+        function setActiveNavigation() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        function initializeTooltips() {
+            const elementsWithTitles = document.querySelectorAll('[title]');
+            elementsWithTitles.forEach(element => {
+                element.addEventListener('mouseenter', showTooltip);
+                element.addEventListener('mouseleave', hideTooltip);
+            });
+        }
+
+        function showTooltip(event) {
+            const title = event.target.getAttribute('title');
+            if (!title) return;
+
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = title;
+            document.body.appendChild(tooltip);
+
+            const rect = event.target.getBoundingClientRect();
+            tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+            tooltip.style.top = rect.top - tooltip.offsetHeight - 5 + 'px';
+
+            // Remove title to prevent default tooltip
+            event.target.setAttribute('data-title', title);
+            event.target.removeAttribute('title');
+
+            setTimeout(() => tooltip.classList.add('show'), 10);
+        }
+
+        function hideTooltip(event) {
+            const tooltip = document.querySelector('.tooltip');
+            if (tooltip) {
+                tooltip.remove();
+            }
+
+            // Restore title
+            const title = event.target.getAttribute('data-title');
+            if (title) {
+                event.target.setAttribute('title', title);
+                event.target.removeAttribute('data-title');
+            }
+        }
+
+        function showSystemInfo() {
+            updateClock();
+            openModal('systemInfoModal');
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleString('th-TH', {
+                timeZone: 'Asia/Bangkok',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            const clockElement = document.getElementById('currentTime');
+            if (clockElement) {
+                clockElement.textContent = timeString;
+            }
+        }
+
+        function showLoadingOverlay(message = 'กำลังประมวลผล...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const messageElement = overlay.querySelector('p');
+            if (messageElement) {
+                messageElement.textContent = message;
+            }
+            overlay.style.display = 'flex';
+        }
+
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.style.display = 'none';
+        }
+
+        // Global error handler
+        window.addEventListener('error', function(event) {
+            console.error('Global error:', event.error);
+            if (window.ITSApp && window.ITSApp.showNotification) {
+                window.ITSApp.showNotification('เกิดข้อผิดพลาดในระบบ', 'error');
+            }
+        });
+
+        // Online/Offline status
+        window.addEventListener('online', function() {
+            if (window.ITSApp && window.ITSApp.showNotification) {
+                window.ITSApp.showNotification('เชื่อมต่ออินเทอร์เน็ตแล้ว', 'success', 3000);
+            }
+        });
+
+        window.addEventListener('offline', function() {
+            if (window.ITSApp && window.ITSApp.showNotification) {
+                window.ITSApp.showNotification('ขาดการเชื่อมต่ออินเทอร์เน็ต', 'warning', 0);
+            }
+        });
+    </script>
+
+    <!-- Additional CSS for layout-specific styles -->
+    <style>
+        /* Layout-specific styles */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: var(--spacing-md) 0;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--spacing-lg);
+            gap: var(--spacing-lg);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .logo-text h1 {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .logo-text p {
+            font-size: var(--font-size-sm);
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-link span {
+            font-size: var(--font-size-sm);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .user-avatar {
+            font-size: 2rem;
+            opacity: 0.9;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+        }
+
+        .user-role {
+            font-size: var(--font-size-xs);
+            opacity: 0.8;
+        }
+
+        .main-content {
+            min-height: calc(100vh - 140px);
+            padding: var(--spacing-lg);
+        }
+
+        .footer {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: var(--spacing-lg) 0;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 var(--spacing-lg);
+        }
+
+        .footer-left p {
+            margin: 0;
+            font-size: var(--font-size-sm);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: var(--spacing-lg);
+        }
+
+        .footer-links a {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: var(--font-size-sm);
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .system-info {
+            display: grid;
+            gap: var(--spacing-lg);
+        }
+
+        .info-section {
+            padding: var(--spacing-md);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .info-section h4 {
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .info-section p {
+            margin: var(--spacing-xs) 0;
+            color: var(--text-secondary);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .loading-content {
+            background: var(--bg-primary);
+            padding: var(--spacing-xl);
+            border-radius: var(--radius-xl);
+            text-align: center;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .tooltip {
+            position: fixed;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-xs);
+            pointer-events: none;
+            z-index: 1200;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                padding: var(--spacing-md);
+            }
+
+            .nav-links {
+                order: 3;
+                width: 100%;
+                justify-content: space-around;
+            }
+
+            .nav-link span {
+                display: none;
+            }
+
+            .user-info {
+                order: 2;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                text-align: center;
+            }
+
+            .main-content {
+                padding: var(--spacing-md);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo-text h1 {
+                font-size: var(--font-size-base);
+            }
+
+            .logo-text p {
+                display: none;
+            }
+
+            .nav-links {
+                padding: var(--spacing-sm) 0;
+            }
+
+            .user-details {
+                display: none;
+            }
+        }
+    </style>
+</body>
+</html>

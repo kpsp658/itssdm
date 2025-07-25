@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการอุปกรณ์ - ITS Device Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 15px;
+            padding: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 25px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: 'Kanit', sans-serif;
+            background: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(110%);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.9rem;
+        }
+
+        .data-table {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #374151;
+            position: sticky;
+            top: 0;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .status-available {
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .status-used {
+            color: #dc2626;
+            font-weight: 500;
+        }
+
+        .status-repair {
+            color: #f59e0b;
+            font-weight: 500;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            padding-right: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: 'Kanit', sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #cbd5e1;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                justify-content: stretch;
+            }
+
+            .action-buttons {
+                justify-content: stretch;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="nav-links">
+                <a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="/stock"><i class="fas fa-warehouse"></i> สต็อก</a>
+                <a href="/devices" class="active"><i class="fas fa-microchip"></i> อุปกรณ์</a>
+                <a href="/reports"><i class="fas fa-chart-bar"></i> รายงาน</a>
+            </div>
+            <button class="btn btn-primary" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-microchip"></i>
+                จัดการอุปกรณ์
+            </h1>
+            <p>จัดการอุปกรณ์ทดแทนและรายงานเครื่องชำรุด</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('replacement')">
+                <i class="fas fa-tools"></i> อุปกรณ์ทดแทน
+            </div>
+            <div class="tab" onclick="switchTab('damaged')">
+                <i class="fas fa-exclamation-triangle"></i> รายงานเครื่องชำรุด
+            </div>
+        </div>
+
+        <!-- Tab: อุปกรณ์ทดแทน -->
+        <div id="replacementTab" class="tab-content active">
+            <div class="controls">
+                <div class="filter-group">
+                    <label>อู่:</label>
+                    <select id="stationFilter" onchange="filterReplacementDevices()">
+                        <option value="">ทุกอู่</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>ประเภท:</label>
+                    <select id="typeFilter" onchange="filterReplacementDevices()">
+                        <option value="">ทุกประเภท</option>
+                        <option value="Z90">Z90</option>
+                        <option value="AVM">AVM</option>
+                        <option value="E60">E60</option>
+                        <option value="MDVR">MDVR</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>สถานะ:</label>
+                    <select id="statusFilter" onchange="filterReplacementDevices()">
+                        <option value="">ทุกสถานะ</option>
+                        <option value="พร้อมใช้">พร้อมใช้</option>
+                        <option value="ใช้งานแล้ว">ใช้งานแล้ว</option>
+                        <option value="ซ่อม">ซ่อม</option>
+                    </select>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="openAddDeviceModal()">
+                        <i class="fas fa-plus"></i> เพิ่มอุปกรณ์
+                    </button>
+                    <button class="btn btn-primary" onclick="refreshReplacementDevices()">
+                        <i class="fas fa-sync-alt"></i> รีเฟรช
+                    </button>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <h3><i class="fas fa-list"></i> รายการอุปกรณ์ทดแทน</h3>
+                <table id="replacementTable">
+                    <thead>
+                        <tr>
+                            <th>วันที่เพิ่ม</th>
+                            <th>อู่</th>
+                            <th>ประเภท</th>
+                            <th>รุ่น</th>
+                            <th>Device ID</th>
+                            <th>S/N</th>
+                            <th>สถานะ</th>
+                            <th>ทะเบียน</th>
+                            <th>ตำแหน่ง</th>
+                            <th>การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="replacementTableBody">
+                        <tr>
+                            <td colspan="10" class="loading">
+                                <div class="form-group">
+                        <label>Device ID ชำรุด *</label>
+                        <input type="text" id="damagedDeviceId" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Serial Number</label>
+                    <input type="text" id="damagedSerialNumber">
+                </div>
+                <div class="form-group">
+                    <label>รายละเอียดปัญหา *</label>
+                    <textarea id="issueDescription" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>ผู้แจ้ง *</label>
+                    <input type="text" id="reporterName" required>
+                </div>
+                <div class="form-group">
+                    <label>ข้อมูลผู้ใช้</label>
+                    <textarea id="userInfo" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> บันทึก
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('damagedModal')">
+                        ยกเลิก
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let replacementDevices = [];
+        let damagedReports = [];
+        let filteredReplacementDevices = [];
+        let filteredDamagedReports = [];
+        let currentEditingDevice = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthentication();
+            loadStations();
+            loadReplacementDevices();
+            loadDamagedReports();
+        });
+
+        async function checkAuthentication() {
+            try {
+                const response = await fetch('/api/auth/check');
+                const data = await response.json();
+                
+                if (!data.authenticated) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                window.location.href = '/login';
+            }
+        }
+
+        async function loadStations() {
+            try {
+                const response = await fetch('/api/locations');
+                const stations = await response.json();
+                
+                const selects = ['stationFilter', 'damagedStationFilter', 'deviceStation', 'damagedStation'];
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (select && !selectId.includes('Filter')) {
+                        select.innerHTML = '<option value="">-- เลือกอู่ --</option>';
+                    }
+                    
+                    stations.forEach(station => {
+                        const option = document.createElement('option');
+                        option.value = station.name;
+                        option.textContent = station.name;
+                        select.appendChild(option);
+                    });
+                });
+            } catch (error) {
+                console.error('Error loading stations:', error);
+            }
+        }
+
+        function switchTab(tabName) {
+            // Remove active class from all tabs and content
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            event.target.classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        // ===== อุปกรณ์ทดแทน =====
+        async function loadReplacementDevices() {
+            try {
+                const response = await fetch('/api/devices/replacement');
+                replacementDevices = await response.json();
+                filteredReplacementDevices = [...replacementDevices];
+                displayReplacementDevices();
+            } catch (error) {
+                console.error('Error loading replacement devices:', error);
+                document.getElementById('replacementTableBody').innerHTML = `
+                    <tr><td colspan="10" class="empty-state">ไม่สามารถโหลดข้อมูลได้</td></tr>
+                `;
+            }
+        }
+
+        function displayReplacementDevices() {
+            const tbody = document.getElementById('replacementTableBody');
+            
+            if (filteredReplacementDevices.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="10" class="empty-state">ไม่พบข้อมูลอุปกรณ์ทดแทน</td></tr>
+                `;
+                return;
+            }
+
+            const rowsHtml = filteredReplacementDevices.map(device => {
+                const statusClass = device.status === 'พร้อมใช้' ? 'status-available' : 
+                                  device.status === 'ใช้งานแล้ว' ? 'status-used' : 'status-repair';
+                
+                return `
+                    <tr>
+                        <td>${formatDate(device.date_added)}</td>
+                        <td>${device.station}</td>
+                        <td>${device.device_type}</td>
+                        <td>${device.device_model}</td>
+                        <td>${device.device_id}</td>
+                        <td>${device.serial_number}</td>
+                        <td><span class="${statusClass}">${device.status}</span></td>
+                        <td>${device.vehicle_license || '-'}</td>
+                        <td>${device.installation_position || '-'}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="editDevice(${device.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteDevice(${device.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.innerHTML = rowsHtml;
+        }
+
+        function filterReplacementDevices() {
+            const stationFilter = document.getElementById('stationFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            filteredReplacementDevices = replacementDevices.filter(device => {
+                const stationMatch = !stationFilter || device.station === stationFilter;
+                const typeMatch = !typeFilter || device.device_type === typeFilter;
+                const statusMatch = !statusFilter || device.status === statusFilter;
+                
+                return stationMatch && typeMatch && statusMatch;
+            });
+
+            displayReplacementDevices();
+        }
+
+        function openAddDeviceModal() {
+            currentEditingDevice = null;
+            document.getElementById('deviceModalTitle').textContent = 'เพิ่มอุปกรณ์ทดแทน';
+            document.getElementById('deviceForm').reset();
+            document.getElementById('deviceModal').style.display = 'block';
+        }
+
+        async function editDevice(id) {
+            try {
+                const device = replacementDevices.find(d => d.id === id);
+                if (!device) return;
+
+                currentEditingDevice = device;
+                document.getElementById('deviceModalTitle').textContent = 'แก้ไขอุปกรณ์ทดแทน';
+                
+                document.getElementById('deviceStation').value = device.station;
+                document.getElementById('deviceType').value = device.device_type;
+                document.getElementById('deviceModel').value = device.device_model;
+                document.getElementById('deviceId').value = device.device_id;
+                document.getElementById('serialNumber').value = device.serial_number;
+                
+                document.getElementById('deviceModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error editing device:', error);
+                alert('ไม่สามารถแก้ไขอุปกรณ์ได้');
+            }
+        }
+
+        async function deleteDevice(id) {
+            if (!confirm('คุณต้องการลบอุปกรณ์นี้หรือไม่?')) return;
+
+            try {
+                const response = await fetch(`/api/devices/replacement/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    await loadReplacementDevices();
+                    alert('ลบอุปกรณ์เรียบร้อยแล้ว');
+                } else {
+                    throw new Error('Delete failed');
+                }
+            } catch (error) {
+                console.error('Error deleting device:', error);
+                alert('ไม่สามารถลบอุปกรณ์ได้');
+            }
+        }
+
+        // ===== รายงานเครื่องชำรุด =====
+        async function loadDamagedReports() {
+            try {
+                const response = await fetch('/api/devices/damaged');
+                damagedReports = await response.json();
+                filteredDamagedReports = [...damagedReports];
+                displayDamagedReports();
+            } catch (error) {
+                console.error('Error loading damaged reports:', error);
+                document.getElementById('damagedTableBody').innerHTML = `
+                    <tr><td colspan="10" class="empty-state">ไม่สามารถโหลดข้อมูลได้</td></tr>
+                `;
+            }
+        }
+
+        function displayDamagedReports() {
+            const tbody = document.getElementById('damagedTableBody');
+            
+            if (filteredDamagedReports.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="10" class="empty-state">ไม่พบรายงานเครื่องชำรุด</td></tr>
+                `;
+                return;
+            }
+
+            const rowsHtml = filteredDamagedReports.map(report => {
+                const status = report.replacement_device_id ? 'แก้ไขแล้ว' : 'รอดำเนินการ';
+                const statusClass = report.replacement_device_id ? 'status-available' : 'status-used';
+                
+                return `
+                    <tr>
+                        <td>${formatDate(report.report_date)}</td>
+                        <td>${report.vehicle_license}</td>
+                        <td>${report.station}</td>
+                        <td>${report.device_type}</td>
+                        <td>${report.damaged_device_id}</td>
+                        <td>${report.issue_description}</td>
+                        <td>${report.reporter_name}</td>
+                        <td>${report.replacement_device_id || '-'}</td>
+                        <td><span class="${statusClass}">${status}</span></td>
+                        <td>
+                            ${!report.replacement_device_id ? `
+                                <button class="btn btn-success btn-sm" onclick="assignReplacement(${report.id})">
+                                    <i class="fas fa-tools"></i> กำหนดทดแทน
+                                </button>
+                            ` : `
+                                <button class="btn btn-primary btn-sm" onclick="viewReport(${report.id})">
+                                    <i class="fas fa-eye"></i> ดูรายละเอียด
+                                </button>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.innerHTML = rowsHtml;
+        }
+
+        function filterDamagedReports() {
+            const stationFilter = document.getElementById('damagedStationFilter').value;
+            const dateFilter = document.getElementById('damagedDateFilter').value;
+
+            filteredDamagedReports = damagedReports.filter(report => {
+                const stationMatch = !stationFilter || report.station === stationFilter;
+                const dateMatch = !dateFilter || formatDate(report.report_date) === formatDate(dateFilter);
+                
+                return stationMatch && dateMatch;
+            });
+
+            displayDamagedReports();
+        }
+
+        function openAddDamagedModal() {
+            document.getElementById('damagedForm').reset();
+            document.getElementById('damagedModal').style.display = 'block';
+        }
+
+        async function assignReplacement(reportId) {
+            const report = damagedReports.find(r => r.id === reportId);
+            if (!report) return;
+
+            const replacementId = prompt(`กำหนดอุปกรณ์ทดแทนสำหรับ ${report.damaged_device_id}:\nกรุณาใส่ Device ID ของอุปกรณ์ทดแทน`);
+            if (!replacementId) return;
+
+            try {
+                const response = await fetch(`/api/devices/damaged/${reportId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        replacementDeviceId: replacementId,
+                        replacementSerialNumber: replacementId // หรือให้ผู้ใช้ใส่ S/N แยก
+                    })
+                });
+
+                if (response.ok) {
+                    await loadDamagedReports();
+                    alert('กำหนดอุปกรณ์ทดแทนเรียบร้อยแล้ว');
+                } else {
+                    throw new Error('Assignment failed');
+                }
+            } catch (error) {
+                console.error('Error assigning replacement:', error);
+                alert('ไม่สามารถกำหนดอุปกรณ์ทดแทนได้');
+            }
+        }
+
+        function viewReport(reportId) {
+            const report = damagedReports.find(r => r.id === reportId);
+            if (!report) return;
+
+            alert(`รายละเอียดรายงาน:
+            
+วันที่แจ้ง: ${formatDate(report.report_date)}
+ทะเบียน: ${report.vehicle_license}
+อู่: ${report.station}
+ประเภท: ${report.device_type}
+Device ID ชำรุด: ${report.damaged_device_id}
+ปัญหา: ${report.issue_description}
+ผู้แจ้ง: ${report.reporter_name}
+อุปกรณ์ทดแทน: ${report.replacement_device_id || '-'}
+วันที่เปลี่ยน: ${report.replacement_date ? formatDate(report.replacement_date) : '-'}`);
+        }
+
+        // ===== Form Handlers =====
+        document.getElementById('deviceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const deviceData = {
+                station: document.getElementById('deviceStation').value,
+                deviceType: document.getElementById('deviceType').value,
+                deviceModel: document.getElementById('deviceModel').value,
+                deviceId: document.getElementById('deviceId').value,
+                serialNumber: document.getElementById('serialNumber').value
+            };
+
+            try {
+                let response;
+                if (currentEditingDevice) {
+                    response = await fetch(`/api/devices/replacement/${currentEditingDevice.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ...deviceData,
+                            status: currentEditingDevice.status,
+                            vehicleLicense: currentEditingDevice.vehicle_license,
+                            installationPosition: currentEditingDevice.installation_position
+                        })
+                    });
+                } else {
+                    response = await fetch('/api/devices/replacement', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(deviceData)
+                    });
+                }
+
+                if (response.ok) {
+                    closeModal('deviceModal');
+                    await loadReplacementDevices();
+                    alert(currentEditingDevice ? 'แก้ไขอุปกรณ์เรียบร้อยแล้ว' : 'เพิ่มอุปกรณ์เรียบร้อยแล้ว');
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Operation failed');
+                }
+            } catch (error) {
+                console.error('Error saving device:', error);
+                alert('ไม่สามารถบันทึกข้อมูลได้: ' + error.message);
+            }
+        });
+
+        document.getElementById('damagedForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const reportData = {
+                vehicleLicense: document.getElementById('damagedVehicle').value,
+                station: document.getElementById('damagedStation').value,
+                deviceType: document.getElementById('damagedDeviceType').value,
+                damagedDeviceId: document.getElementById('damagedDeviceId').value,
+                damagedSerialNumber: document.getElementById('damagedSerialNumber').value,
+                issueDescription: document.getElementById('issueDescription').value,
+                reporterName: document.getElementById('reporterName').value,
+                userInfo: document.getElementById('userInfo').value
+            };
+
+            try {
+                const response = await fetch('/api/devices/damaged', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(reportData)
+                });
+
+                if (response.ok) {
+                    closeModal('damagedModal');
+                    await loadDamagedReports();
+                    alert('เพิ่มรายงานเรียบร้อยแล้ว');
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Operation failed');
+                }
+            } catch (error) {
+                console.error('Error saving report:', error);
+                alert('ไม่สามารถบันทึกรายงานได้: ' + error.message);
+            }
+        });
+
+        // ===== Utility Functions =====
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH');
+        }
+
+        async function refreshReplacementDevices() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="spinner"></div> กำลังรีเฟรช...';
+            btn.disabled = true;
+
+            await loadReplacementDevices();
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+
+        async function refreshDamagedReports() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="spinner"></div> กำลังรีเฟรช...';
+            btn.disabled = true;
+
+            await loadDamagedReports();
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        };
+
+        async function logout() {
+            try {
+                const response = await fetch('/api/auth/logout', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = '/login';
+            }
+        }
+    </script>
+</body>
+</html>spinner"></div>
+                                กำลังโหลด...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab: รายงานเครื่องชำรุด -->
+        <div id="damagedTab" class="tab-content">
+            <div class="controls">
+                <div class="filter-group">
+                    <label>อู่:</label>
+                    <select id="damagedStationFilter" onchange="filterDamagedReports()">
+                        <option value="">ทุกอู่</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>วันที่:</label>
+                    <input type="date" id="damagedDateFilter" onchange="filterDamagedReports()">
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="openAddDamagedModal()">
+                        <i class="fas fa-plus"></i> เพิ่มรายงาน
+                    </button>
+                    <button class="btn btn-primary" onclick="refreshDamagedReports()">
+                        <i class="fas fa-sync-alt"></i> รีเฟรช
+                    </button>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <h3><i class="fas fa-exclamation-triangle"></i> รายการแจ้งเครื่องชำรุด</h3>
+                <table id="damagedTable">
+                    <thead>
+                        <tr>
+                            <th>วันที่แจ้ง</th>
+                            <th>ทะเบียน</th>
+                            <th>อู่</th>
+                            <th>ประเภท</th>
+                            <th>Device ID</th>
+                            <th>ปัญหา</th>
+                            <th>ผู้แจ้ง</th>
+                            <th>อุปกรณ์ทดแทน</th>
+                            <th>สถานะ</th>
+                            <th>การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="damagedTableBody">
+                        <tr>
+                            <td colspan="10" class="loading">
+                                <div class="spinner"></div>
+                                กำลังโหลด...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal เพิ่ม/แก้ไขอุปกรณ์ทดแทน -->
+    <div id="deviceModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('deviceModal')">&times;</span>
+            <h3 class="modal-title" id="deviceModalTitle">เพิ่มอุปกรณ์ทดแทน</h3>
+            <form id="deviceForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>อู่ *</label>
+                        <select id="deviceStation" required>
+                            <option value="">-- เลือกอู่ --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>ประเภทอุปกรณ์ *</label>
+                        <select id="deviceType" required>
+                            <option value="">-- เลือกประเภท --</option>
+                            <option value="Z90">Z90</option>
+                            <option value="AVM">AVM</option>
+                            <option value="E60">E60</option>
+                            <option value="MDVR">MDVR</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>รุ่นอุปกรณ์ *</label>
+                        <input type="text" id="deviceModel" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Device ID *</label>
+                        <input type="text" id="deviceId" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Serial Number *</label>
+                    <input type="text" id="serialNumber" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> บันทึก
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('deviceModal')">
+                        ยกเลิก
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal รายงานเครื่องชำรุด -->
+    <div id="damagedModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('damagedModal')">&times;</span>
+            <h3 class="modal-title">เพิ่มรายงานเครื่องชำรุด</h3>
+            <form id="damagedForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ทะเบียนรถ *</label>
+                        <input type="text" id="damagedVehicle" required>
+                    </div>
+                    <div class="form-group">
+                        <label>อู่ *</label>
+                        <select id="damagedStation" required>
+                            <option value="">-- เลือกอู่ --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ประเภทอุปกรณ์ *</label>
+                        <select id="damagedDeviceType" required>
+                            <option value="">-- เลือกประเภท --</option>
+                            <option value="Z90">Z90</option>
+                            <option value="AVM">AVM</option>
+                            <option value="E60">E60</option>
+                            <option value="MDVR">MDVR</option>
+                        </select>
+                    </div>
+                    <div class="
