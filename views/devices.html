@@ -566,7 +566,7 @@
             }
         }
 
-        function displayReplacementDevices() {
+function displayReplacementDevices() {
     const tbody = document.getElementById('replacementTableBody');
     
     if (filteredReplacementDevices.length === 0) {
@@ -581,26 +581,31 @@
                           device.status === 'ใช้งานแล้ว' ? 'status-used' : 'status-repair';
         
         // *** แก้ไขการแสดงปุ่ม Action ตามเงื่อนไขใหม่ ***
-        const actionButtons = `
+        let actionButtons = `
             <button class="btn btn-primary btn-sm" onclick="editDevice(${device.id})" title="แก้ไข">
                 <i class="fas fa-edit"></i>
             </button>
-            ${device.status === 'ใช้งานแล้ว' ? (
-                device.device_type === 'Z90' ? `
+        `;
+
+        // เพิ่มปุ่มตามสถานะและประเภทอุปกรณ์
+        if (device.status === 'ใช้งานแล้ว') {
+            // แสดงปุ่ม return เฉพาะเครื่อง Z90 เท่านั้น
+            if (device.device_type === 'Z90') {
+                actionButtons += `
                     <button class="btn btn-success btn-sm" onclick="returnDevice(${device.id})" title="คืนเครื่อง Z90 เข้าสต็อก">
                         <i class="fas fa-undo"></i> คืน
                     </button>
-                ` : `
-                    <span class="text-muted" title="เฉพาะเครื่อง Z90 เท่านั้นที่สามารถคืนได้">
-                        <i class="fas fa-ban"></i> ไม่สามารถคืนได้
-                    </span>
-                `
-            ) : `
+                `;
+            }
+            // เครื่องประเภทอื่นที่ใช้งานแล้ว ไม่มีปุ่ม return
+        } else {
+            // อุปกรณ์ที่ไม่ได้ใช้งาน แสดงปุ่มลบ
+            actionButtons += `
                 <button class="btn btn-danger btn-sm" onclick="deleteDevice(${device.id})" title="ลบ">
                     <i class="fas fa-trash"></i>
                 </button>
-            `}
-        `;
+            `;
+        }
         
         return `
             <tr>
@@ -622,7 +627,6 @@
 
     tbody.innerHTML = rowsHtml;
 }
-
         function filterReplacementDevices() {
             const stationFilter = document.getElementById('stationFilter').value;
             const typeFilter = document.getElementById('typeFilter').value;
