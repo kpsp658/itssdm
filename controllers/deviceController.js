@@ -490,66 +490,80 @@ class DeviceController {
     }
 
     // คืนอุปกรณ์ (เปลี่ยนสถานะกลับเป็นพร้อมใช้)
-    static async returnDevice(req, res) {
-        try {
-            const { id } = req.params;
-            const { notes = '' } = req.body;
+  static async returnDevice(req, res) {
+    try {
+        const { id } = req.params;
+        const { notes = '' } = req.body;
 
-            console.log('Returning device ID:', id);
+        console.log('Returning device ID:', id);
 
-            // ตรวจสอบว่าอุปกรณ์มีอยู่และกำลังใช้งาน
-            const checkQuery = `
-                SELECT * FROM replacement_devices 
-                WHERE id = $1 AND status = 'ใช้งานแล้ว'
-            `;
-            const checkResult = await db.query(checkQuery, [id]);
-            
-            if (checkResult.rows.length === 0) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'ไม่พบอุปกรณ์ที่กำลังใช้งานหรืออุปกรณ์นี้ไม่ได้ใช้งาน'
-                });
-            }
-
-            const device = checkResult.rows[0];
-
-            //คืนอุปกรณ์
-            const updateQuery = `
-                UPDATE replacement_devices 
-                SET status = 'พร้อมใช้',
-                    date_used = NULL,
-                    vehicle_license = NULL,
-                    installation_position = NULL,
-                    notes = COALESCE($1, notes),
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE id = $2
-                RETURNING *
-            `;
-            
-            const result = await db.query(updateQuery, [notes, id]);
-
-            console.log('Device returned successfully:', device.device_id);
-
-            // อัปเดตสต็อก
-            await DeviceController.updateStockSummary(device.station, device.device_model);
-
-            // บันทึกประวัติการคืน
-            await DeviceController.logDeviceAction(id, 'return', device.vehicle_license, req.session.user?.id);
-
-            res.json({
-                success: true,
-                message: `คืนอุปกรณ์ ${device.device_id} เรียบร้อยแล้ว`,
-                device: result.rows[0]
-            });
-
-        } catch (error) {
-            console.error('Return device error:', error);
-            res.status(500).json({
+        // ตรวจสอบว่าอุปกรณ์มีอยู่และกำลังใช้งาน
+        const checkQuery = `
+            SELECT * FROM replacement_devices 
+            WHERE id = $1 AND status = 'ใช้งานแล้ว'
+        `;
+        const checkResult = await db.query(checkQuery, [id]);
+        
+        if (checkResult.rows.length === 0) {
+            return res.status(400).json({
                 success: false,
-                error: 'เกิดข้อผิดพลาดในการคืนอุปกรณ์'
+                error: 'ไม่พบอุปกรณ์ที่กำลังใช้งานหรืออุปกรณ์นี้ไม่ได้ใช้งาน'
             });
         }
+
+        const device = checkResult.rows[0];
+
+        // *** เพิ่มเงื่อนไข: เฉพาะเครื่อง Z90 เท่านั้นที่สามารถ return ได้ ***
+        if (device.device_type !== 'Z90') {
+            return res.status(403).json({
+                success: false,
+                error: 'เฉพาะเครื่อง Z90 เท่านั้นที่สามารถคืนกลับเข้าสต็อกได้'
+            });
+        }
+
+        // คืนอุปกรณ์ Z90 กลับเข้าสต็อกของอู่เดิม
+        const updateQuery = `
+            UPDATE replacement_devices 
+            SET status = 'พร้อมใช้',
+                date_used = NULL,
+                vehicle_license = NULL,
+                installation_position = NULL,
+                notes = COALESCE($1, notes),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $2
+            RETURNING *
+        `;
+        
+        const result = await db.query(updateQuery, [notes, id]);
+
+        console.log('Z90 device returned successfully:', device.device_id);
+
+        // อัปเดตสต็อกของอู่เดิม
+        await DeviceController.updateStockSummary(device.station, device.device_model);
+
+        // บันทึกประวัติการคืน
+        await DeviceController.logDeviceAction(
+            id, 
+            'return', 
+            device.vehicle_license, 
+            req.session.user?.id,
+            `คืนเครื่อง Z90 ${device.device_id} กลับเข้าสต็อกของอู่ ${device.station}`
+        );
+
+        res.json({
+            success: true,
+            message: `คืนเครื่อง Z90 ${device.device_id} กลับเข้าสต็อกของอู่ ${device.station} เรียบร้อยแล้ว`,
+            device: result.rows[0]
+        });
+
+    } catch (error) {
+        console.error('Return device error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'เกิดข้อผิดพลาดในการคืนอุปกรณ์'
+        });
     }
+}
 
     // รายงานเครื่องชำรุด
     static async reportDamage(req, res) {

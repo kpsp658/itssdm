@@ -715,3 +715,49 @@ a:hover {
         padding: var(--spacing-md);
     }
 }
+
+/* Action buttons container */
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Return button specific styling - เฉพาะ Z90 */
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Icon spacing in buttons */
+.btn i {
+    margin-right: 4px;
+}
+
+/* Ensure action buttons column has proper width */
+td.action-buttons {
+    min-width: 120px;
+    white-space: nowrap;
+}
+
+/* Z90 specific highlighting when hovered */
+tr:hover .btn-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}

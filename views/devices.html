@@ -567,56 +567,61 @@
         }
 
         function displayReplacementDevices() {
-            const tbody = document.getElementById('replacementTableBody');
-            
-            if (filteredReplacementDevices.length === 0) {
-                tbody.innerHTML = `
-                    <tr><td colspan="10" class="empty-state">ไม่พบข้อมูลอุปกรณ์ทดแทน</td></tr>
-                `;
-                return;
-            }
+    const tbody = document.getElementById('replacementTableBody');
+    
+    if (filteredReplacementDevices.length === 0) {
+        tbody.innerHTML = `
+            <tr><td colspan="10" class="empty-state">ไม่พบอุปกรณ์ทดแทน</td></tr>
+        `;
+        return;
+    }
 
-            const rowsHtml = filteredReplacementDevices.map(device => {
-                const statusClass = device.status === 'พร้อมใช้' ? 'status-available' : 
-                                  device.status === 'ใช้งานแล้ว' ? 'status-used' : 'status-repair';
-                
-                // *** START: โค้ดที่แก้ไขและเพิ่มเข้ามา ***
-                const actionButtons = `
-                    <button class="btn btn-primary btn-sm" onclick="editDevice(${device.id})" title="แก้ไข">
-                        <i class="fas fa-edit"></i>
+    const rowsHtml = filteredReplacementDevices.map(device => {
+        const statusClass = device.status === 'พร้อมใช้' ? 'status-available' : 
+                          device.status === 'ใช้งานแล้ว' ? 'status-used' : 'status-repair';
+        
+        // *** แก้ไขการแสดงปุ่ม Action ตามเงื่อนไขใหม่ ***
+        const actionButtons = `
+            <button class="btn btn-primary btn-sm" onclick="editDevice(${device.id})" title="แก้ไข">
+                <i class="fas fa-edit"></i>
+            </button>
+            ${device.status === 'ใช้งานแล้ว' ? (
+                device.device_type === 'Z90' ? `
+                    <button class="btn btn-success btn-sm" onclick="returnDevice(${device.id})" title="คืนเครื่อง Z90 เข้าสต็อก">
+                        <i class="fas fa-undo"></i> คืน
                     </button>
-                    ${device.status === 'ใช้งานแล้ว' ? `
-                        <button class="btn btn-success btn-sm" onclick="returnDevice(${device.id})" title="คืนอุปกรณ์">
-                            <i class="fas fa-undo"></i>
-                        </button>
-                    ` : `
-                        <button class="btn btn-danger btn-sm" onclick="deleteDevice(${device.id})" title="ลบ">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    `}
-                `;
-                // *** END: โค้ดที่แก้ไขและเพิ่มเข้ามา ***
-                
-                return `
-                    <tr>
-                        <td>${formatDate(device.date_added)}</td>
-                        <td>${device.station}</td>
-                        <td>${device.device_type}</td>
-                        <td>${device.device_model}</td>
-                        <td>${device.device_id}</td>
-                        <td>${device.serial_number}</td>
-                        <td><span class="${statusClass}">${device.status}</span></td>
-                        <td>${device.vehicle_license || '-'}</td>
-                        <td>${device.installation_position || '-'}</td>
-                        <td>
-                           ${actionButtons}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+                ` : `
+                    <span class="text-muted" title="เฉพาะเครื่อง Z90 เท่านั้นที่สามารถคืนได้">
+                        <i class="fas fa-ban"></i> ไม่สามารถคืนได้
+                    </span>
+                `
+            ) : `
+                <button class="btn btn-danger btn-sm" onclick="deleteDevice(${device.id})" title="ลบ">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `}
+        `;
+        
+        return `
+            <tr>
+                <td>${formatDate(device.date_added)}</td>
+                <td>${device.station}</td>
+                <td>${device.device_type}</td>
+                <td>${device.device_model}</td>
+                <td>${device.device_id}</td>
+                <td>${device.serial_number}</td>
+                <td><span class="${statusClass}">${device.status}</span></td>
+                <td>${device.vehicle_license || '-'}</td>
+                <td>${device.installation_position || '-'}</td>
+                <td class="action-buttons">
+                   ${actionButtons}
+                </td>
+            </tr>
+        `;
+    }).join('');
 
-            tbody.innerHTML = rowsHtml;
-        }
+    tbody.innerHTML = rowsHtml;
+}
 
         function filterReplacementDevices() {
             const stationFilter = document.getElementById('stationFilter').value;
@@ -683,32 +688,50 @@
         }
         
         // *** START: เพิ่มฟังก์ชันใหม่ ***
-        async function returnDevice(id) {
-            if (!confirm('คุณต้องการคืนอุปกรณ์นี้กลับเข้าสต็อกใช่หรือไม่?')) return;
+ async function returnDevice(id) {
+    // หาข้อมูลอุปกรณ์ที่ต้องการคืน
+    const device = replacementDevices.find(d => d.id === id);
+    
+    if (!device) {
+        alert('ไม่พบข้อมูลอุปกรณ์');
+        return;
+    }
 
-            try {
-                const response = await fetch(`/api/devices/replacement/${id}/return`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    // สามารถส่งข้อมูลเพิ่มเติมได้หากต้องการ เช่น เหตุผลการคืน
-                    body: JSON.stringify({ notes: 'Returned to stock by user' }) 
-                });
+    // *** เพิ่มการตรวจสอบประเภทอุปกรณ์ก่อนการคืน ***
+    if (device.device_type !== 'Z90') {
+        alert('เฉพาะเครื่อง Z90 เท่านั้นที่สามารถคืนกลับเข้าสต็อกได้');
+        return;
+    }
 
-                const result = await response.json();
+    // แสดงข้อความยืนยันที่ชัดเจน
+    const confirmMessage = `คุณต้องการคืนเครื่อง Z90 ${device.device_id} กลับเข้าสต็อกของอู่ ${device.station} ใช่หรือไม่?`;
+    
+    if (!confirm(confirmMessage)) {
+        return;
+    }
 
-                if (response.ok && result.success) {
-                    await loadReplacementDevices(); // โหลดข้อมูลใหม่เพื่ออัปเดตตาราง
-                    alert(result.message || 'คืนอุปกรณ์เรียบร้อยแล้ว');
-                } else {
-                    throw new Error(result.error || 'Return failed');
-                }
-            } catch (error) {
-                console.error('Error returning device:', error);
-                alert('ไม่สามารถคืนอุปกรณ์ได้: ' + error.message);
-            }
+    try {
+        const response = await fetch(`/api/devices/replacement/${id}/return`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                notes: `คืนเครื่อง Z90 กลับเข้าสต็อกของอู่ ${device.station}` 
+            }) 
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            await loadReplacementDevices(); // โหลดข้อมูลใหม่เพื่ออัปเดตตาราง
+            alert(result.message || 'คืนเครื่อง Z90 เรียบร้อยแล้ว');
+        } else {
+            throw new Error(result.error || 'การคืนอุปกรณ์ล้มเหลว');
         }
-        // *** END: เพิ่มฟังก์ชันใหม่ ***
-
+    } catch (error) {
+        console.error('Error returning device:', error);
+        alert('ไม่สามารถคืนอุปกรณ์ได้: ' + error.message);
+    }
+}
         // ===== รายงานเครื่องชำรุด =====
         async function loadDamagedReports() {
             try {
