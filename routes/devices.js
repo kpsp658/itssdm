@@ -3,6 +3,8 @@ const express = require('express');
 const db = require('../config/database');
 const { updateStockSummary } = require('../scripts/setup-database');
 const router = express.Router();
+// สมมติว่าคุณย้าย logic ไปที่ controller แล้ว
+const DeviceController = require('../controllers/deviceController'); 
 
 // Authentication middleware
 const requireAuth = (req, res, next) => {
@@ -63,6 +65,11 @@ router.post('/replacement', async (req, res) => {
     }
   }
 });
+
+// *** START: โค้ดที่เพิ่มเข้ามา ***
+// คืนอุปกรณ์
+router.put('/replacement/:id/return', DeviceController.returnDevice);
+// *** END: โค้ดที่เพิ่มเข้ามา ***
 
 // อัปเดตสถานะอุปกรณ์ทดแทน
 router.put('/replacement/:id', async (req, res) => {
