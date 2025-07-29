@@ -397,7 +397,6 @@
             </div>
         </div>
 
-        <!-- Tab: อุปกรณ์ทดแทน -->
         <div id="replacementTab" class="tab-content active">
             <div class="controls">
                 <div class="filter-group">
@@ -581,6 +580,23 @@
                 const statusClass = device.status === 'พร้อมใช้' ? 'status-available' : 
                                   device.status === 'ใช้งานแล้ว' ? 'status-used' : 'status-repair';
                 
+                // *** START: โค้ดที่แก้ไขและเพิ่มเข้ามา ***
+                const actionButtons = `
+                    <button class="btn btn-primary btn-sm" onclick="editDevice(${device.id})" title="แก้ไข">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    ${device.status === 'ใช้งานแล้ว' ? `
+                        <button class="btn btn-success btn-sm" onclick="returnDevice(${device.id})" title="คืนอุปกรณ์">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                    ` : `
+                        <button class="btn btn-danger btn-sm" onclick="deleteDevice(${device.id})" title="ลบ">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `}
+                `;
+                // *** END: โค้ดที่แก้ไขและเพิ่มเข้ามา ***
+                
                 return `
                     <tr>
                         <td>${formatDate(device.date_added)}</td>
@@ -593,12 +609,7 @@
                         <td>${device.vehicle_license || '-'}</td>
                         <td>${device.installation_position || '-'}</td>
                         <td>
-                            <button class="btn btn-primary btn-sm" onclick="editDevice(${device.id})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteDevice(${device.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                           ${actionButtons}
                         </td>
                     </tr>
                 `;
@@ -670,6 +681,33 @@
                 alert('ไม่สามารถลบอุปกรณ์ได้');
             }
         }
+        
+        // *** START: เพิ่มฟังก์ชันใหม่ ***
+        async function returnDevice(id) {
+            if (!confirm('คุณต้องการคืนอุปกรณ์นี้กลับเข้าสต็อกใช่หรือไม่?')) return;
+
+            try {
+                const response = await fetch(`/api/devices/replacement/${id}/return`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    // สามารถส่งข้อมูลเพิ่มเติมได้หากต้องการ เช่น เหตุผลการคืน
+                    body: JSON.stringify({ notes: 'Returned to stock by user' }) 
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    await loadReplacementDevices(); // โหลดข้อมูลใหม่เพื่ออัปเดตตาราง
+                    alert(result.message || 'คืนอุปกรณ์เรียบร้อยแล้ว');
+                } else {
+                    throw new Error(result.error || 'Return failed');
+                }
+            } catch (error) {
+                console.error('Error returning device:', error);
+                alert('ไม่สามารถคืนอุปกรณ์ได้: ' + error.message);
+            }
+        }
+        // *** END: เพิ่มฟังก์ชันใหม่ ***
 
         // ===== รายงานเครื่องชำรุด =====
         async function loadDamagedReports() {
@@ -936,147 +974,4 @@ Device ID ชำรุด: ${report.damaged_device_id}
         }
     </script>
 </body>
-</html>spinner"></div>
-                                กำลังโหลด...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Tab: รายงานเครื่องชำรุด -->
-        <div id="damagedTab" class="tab-content">
-            <div class="controls">
-                <div class="filter-group">
-                    <label>อู่:</label>
-                    <select id="damagedStationFilter" onchange="filterDamagedReports()">
-                        <option value="">ทุกอู่</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label>วันที่:</label>
-                    <input type="date" id="damagedDateFilter" onchange="filterDamagedReports()">
-                </div>
-
-                <div class="action-buttons">
-                    <button class="btn btn-success" onclick="openAddDamagedModal()">
-                        <i class="fas fa-plus"></i> เพิ่มรายงาน
-                    </button>
-                    <button class="btn btn-primary" onclick="refreshDamagedReports()">
-                        <i class="fas fa-sync-alt"></i> รีเฟรช
-                    </button>
-                </div>
-            </div>
-
-            <div class="data-table">
-                <h3><i class="fas fa-exclamation-triangle"></i> รายการแจ้งเครื่องชำรุด</h3>
-                <table id="damagedTable">
-                    <thead>
-                        <tr>
-                            <th>วันที่แจ้ง</th>
-                            <th>ทะเบียน</th>
-                            <th>อู่</th>
-                            <th>ประเภท</th>
-                            <th>Device ID</th>
-                            <th>ปัญหา</th>
-                            <th>ผู้แจ้ง</th>
-                            <th>อุปกรณ์ทดแทน</th>
-                            <th>สถานะ</th>
-                            <th>การจัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="damagedTableBody">
-                        <tr>
-                            <td colspan="10" class="loading">
-                                <div class="spinner"></div>
-                                กำลังโหลด...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal เพิ่ม/แก้ไขอุปกรณ์ทดแทน -->
-    <div id="deviceModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeModal('deviceModal')">&times;</span>
-            <h3 class="modal-title" id="deviceModalTitle">เพิ่มอุปกรณ์ทดแทน</h3>
-            <form id="deviceForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>อู่ *</label>
-                        <select id="deviceStation" required>
-                            <option value="">-- เลือกอู่ --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>ประเภทอุปกรณ์ *</label>
-                        <select id="deviceType" required>
-                            <option value="">-- เลือกประเภท --</option>
-                            <option value="Z90">Z90</option>
-                            <option value="AVM">AVM</option>
-                            <option value="E60">E60</option>
-                            <option value="MDVR">MDVR</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>รุ่นอุปกรณ์ *</label>
-                        <input type="text" id="deviceModel" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Device ID *</label>
-                        <input type="text" id="deviceId" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Serial Number *</label>
-                    <input type="text" id="serialNumber" required>
-                </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> บันทึก
-                    </button>
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('deviceModal')">
-                        ยกเลิก
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal รายงานเครื่องชำรุด -->
-    <div id="damagedModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeModal('damagedModal')">&times;</span>
-            <h3 class="modal-title">เพิ่มรายงานเครื่องชำรุด</h3>
-            <form id="damagedForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>ทะเบียนรถ *</label>
-                        <input type="text" id="damagedVehicle" required>
-                    </div>
-                    <div class="form-group">
-                        <label>อู่ *</label>
-                        <select id="damagedStation" required>
-                            <option value="">-- เลือกอู่ --</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>ประเภทอุปกรณ์ *</label>
-                        <select id="damagedDeviceType" required>
-                            <option value="">-- เลือกประเภท --</option>
-                            <option value="Z90">Z90</option>
-                            <option value="AVM">AVM</option>
-                            <option value="E60">E60</option>
-                            <option value="MDVR">MDVR</option>
-                        </select>
-                    </div>
-                    <div class="
+</html>
